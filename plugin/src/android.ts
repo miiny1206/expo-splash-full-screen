@@ -16,7 +16,7 @@ const DENSITIES = [
 export const withAndroid: ConfigPlugin<NormalizedProps> = (config, props) => {
   config = withAndroidDrawables(config, props);
   config = withAndroidSplashValues(config, props);
-  config = withAndroidAppTheme(config);
+  config = withAndroidAppTheme(config, props);
   return config;
 };
 
@@ -46,6 +46,23 @@ const withAndroidDrawables: ConfigPlugin<NormalizedProps> = (config, props) =>
         );
       }
 
+      // Paint the overlay's first-frame content into windowBackground so the cold-start window
+      // phase matches what the Dialog will render. A flat @color/splash_background would flash
+      // before the Dialog mounts.
+      const writeWindowLayerList = (filename: string, innerItem: string): void => {
+        const drawableDir = path.join(resDir, 'drawable');
+        fs.mkdirSync(drawableDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(drawableDir, filename),
+          `<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/splash_background"/>
+${innerItem}
+</layer-list>
+`,
+        );
+      };
+
       if (props.iconSplash?.android) {
         const iconSource = path.resolve(appRoot, props.iconSplash.image);
         if (!fs.existsSync(iconSource)) {
@@ -62,6 +79,24 @@ const withAndroidDrawables: ConfigPlugin<NormalizedProps> = (config, props) =>
             useSips,
           );
         }
+
+        writeWindowLayerList(
+          'splash_icon_window.xml',
+          `    <item android:gravity="center" android:width="${props.iconSplash.imageWidth}dp" android:height="${props.iconSplash.imageWidth}dp">
+        <bitmap
+            android:src="@drawable/splash_icon"
+            android:gravity="fill"/>
+    </item>`,
+        );
+      } else {
+        writeWindowLayerList(
+          'splash_fullscreen_window.xml',
+          `    <item>
+        <bitmap
+            android:src="@drawable/splash_fullscreen"
+            android:gravity="fill"/>
+    </item>`,
+        );
       }
 
       return cfg;
@@ -96,12 +131,20 @@ const withAndroidSplashValues: ConfigPlugin<NormalizedProps> = (config, props) =
   ]);
 
 const WINDOW_BG_KEY = 'android:windowBackground';
-const WINDOW_BG_VALUE = '@color/splash_background';
 
-const withAndroidAppTheme: ConfigPlugin = (config) =>
+const withAndroidAppTheme: ConfigPlugin<NormalizedProps> = (config, props) =>
   withAndroidStyles(config, (cfg) => {
     const styles = cfg.modResults.resources?.style;
     if (!Array.isArray(styles)) return cfg;
+
+    // Both branches paint the pre-overlay layer into windowBackground so frame 1 of the
+    // Activity cold-start already matches what the overlay will render (see withAndroidDrawables).
+    //   Icon enabled  → bg + centered icon drawable (matches overlay icon layer).
+    //   Icon disabled → bg + full-bleed splash drawable (matches overlay fullscreen layer).
+    // Using a flat color here would cause a visible flash before the Dialog mounts.
+    const windowBgValue = props.iconSplash?.android
+      ? '@drawable/splash_icon_window'
+      : '@drawable/splash_fullscreen_window';
 
     for (const name of ['AppTheme', 'Theme.App.SplashScreen']) {
       const style = styles.find((s) => s.$.name === name);
@@ -110,9 +153,9 @@ const withAndroidAppTheme: ConfigPlugin = (config) =>
       if (!Array.isArray(style.item)) style.item = [];
       const existing = style.item.find((i) => i.$.name === WINDOW_BG_KEY);
       if (existing) {
-        existing._ = WINDOW_BG_VALUE;
+        existing._ = windowBgValue;
       } else {
-        style.item.push({ $: { name: WINDOW_BG_KEY }, _: WINDOW_BG_VALUE });
+        style.item.push({ $: { name: WINDOW_BG_KEY }, _: windowBgValue });
       }
     }
 

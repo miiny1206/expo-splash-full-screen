@@ -90,7 +90,16 @@ const withIosStoryboard: ConfigPlugin<NormalizedProps> = (config, props) =>
         .filter((d) => fs.existsSync(path.join(d, 'SplashScreen.storyboard')));
 
       const { r, g, b } = hexToRgb01(props.backgroundColor);
-      const storyboard = buildStoryboard(r, g, b, !!props.iconSplash?.ios);
+      const iconWidth = props.iconSplash?.imageWidth ?? 200;
+      const storyboard = buildStoryboard(
+        r,
+        g,
+        b,
+        !!props.iconSplash?.ios,
+        iconWidth,
+        props.baseWidth,
+        props.baseHeight,
+      );
 
       for (const appDir of appDirs) {
         fs.writeFileSync(path.join(appDir, 'SplashScreen.storyboard'), storyboard);
@@ -132,17 +141,39 @@ function writeImageset(
   );
 }
 
-function buildStoryboard(r: string, g: string, b: string, iconEnabled: boolean): string {
-  const iconImage = iconEnabled
+function buildStoryboard(
+  r: string,
+  g: string,
+  b: string,
+  iconEnabled: boolean,
+  iconWidth: number,
+  baseWidth: number,
+  baseHeight: number,
+): string {
+  // Icon enabled → centered icon at configured width. Absolute constants so storyboard icon
+  // matches overlay UIImageView sizing (prevents size "jump" on storyboard → overlay handoff).
+  // Icon disabled → full-bleed SplashFullScreen pinned to 4 edges with scaleAspectFill, so the
+  // launch phase already shows the full splash instead of a bg-color-only frame.
+  const subview = iconEnabled
     ? `<imageView opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="SplashIcon" translatesAutoresizingMaskIntoConstraints="NO" id="JMI-01-000"/>`
-    : '';
-  const iconConstraints = iconEnabled
+    : `<imageView opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" image="SplashFullScreen" translatesAutoresizingMaskIntoConstraints="NO" id="FSC-01-000"/>`;
+  const subviewConstraints = iconEnabled
     ? `<constraint firstItem="JMI-01-000" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="JMI-01-cx"/>
                             <constraint firstItem="JMI-01-000" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="JMI-01-cy"/>
-                            <constraint firstItem="JMI-01-000" firstAttribute="width" secondItem="Ze5-6b-2t3" secondAttribute="width" multiplier="0.33" id="JMI-01-w"/>
-                            <constraint firstItem="JMI-01-000" firstAttribute="height" secondItem="JMI-01-000" secondAttribute="width" id="JMI-01-h"/>`
-    : '';
-  const iconImageRef = iconEnabled ? `<image name="SplashIcon" width="400" height="400"/>` : '';
+                            <constraint firstItem="JMI-01-000" firstAttribute="width" constant="${iconWidth}" id="JMI-01-w"/>
+                            <constraint firstItem="JMI-01-000" firstAttribute="height" constant="${iconWidth}" id="JMI-01-h"/>`
+    : `<constraint firstItem="FSC-01-000" firstAttribute="top" secondItem="Ze5-6b-2t3" secondAttribute="top" id="FSC-01-top"/>
+                            <constraint firstItem="FSC-01-000" firstAttribute="bottom" secondItem="Ze5-6b-2t3" secondAttribute="bottom" id="FSC-01-bot"/>
+                            <constraint firstItem="FSC-01-000" firstAttribute="leading" secondItem="Ze5-6b-2t3" secondAttribute="leading" id="FSC-01-lead"/>
+                            <constraint firstItem="FSC-01-000" firstAttribute="trailing" secondItem="Ze5-6b-2t3" secondAttribute="trailing" id="FSC-01-trail"/>`;
+  const assetImageRef = iconEnabled
+    ? `<image name="SplashIcon" width="${iconWidth}" height="${iconWidth}"/>`
+    : `<image name="SplashFullScreen" width="${baseWidth}" height="${baseHeight}"/>`;
+  // Placeholder kept so @expo/prebuild-config's splash-screen base mod parses <resources> as an
+  // object (xml2js returns a string when the element only contains whitespace, which crashes
+  // removeImageFromSplashScreen / applyImageToSplashScreenXML with "Cannot create property 'image'
+  // on string"). Named "SplashScreenLogo" so the built-in remove path cleanly strips it.
+  const placeholderImageRef = `<image name="SplashScreenLogo" width="1" height="1"/>`;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="17701" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="EXPO-VIEWCONTROLLER-1">
@@ -162,11 +193,11 @@ function buildStoryboard(r: string, g: string, b: string, iconEnabled: boolean):
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
-                            ${iconImage}
+                            ${subview}
                         </subviews>
                         <color key="backgroundColor" red="${r}" green="${g}" blue="${b}" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
-                            ${iconConstraints}
+                            ${subviewConstraints}
                         </constraints>
                     </view>
                 </viewController>
@@ -176,7 +207,8 @@ function buildStoryboard(r: string, g: string, b: string, iconEnabled: boolean):
         </scene>
     </scenes>
     <resources>
-        ${iconImageRef}
+        ${placeholderImageRef}
+        ${assetImageRef}
     </resources>
 </document>
 `;
