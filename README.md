@@ -51,22 +51,22 @@ bunx expo run:ios
 
 ## Props
 
-| Prop                    | Type          | Default     | Description                                  |
-| ----------------------- | ------------- | ----------- | -------------------------------------------- |
-| `image` **(required)**  | `string`      | —           | Full-screen splash PNG                       |
-| `backgroundColor`       | `string`      | `"#FFFFFF"` | Hex color behind the icon layer              |
-| `fadeIn`                | `number` (ms) | `250`       | Fade-in duration (ease-out)                  |
-| `fadeOut`               | `number` (ms) | `300`       | Fade-out when `hide({ fade: true })` (ease-in) |
-| `iconDisplayMs`         | `number` (ms) | `1200`      | Hold between fade-in end and cross-fade start |
-| `crossfadeMs`           | `number` (ms) | `400`       | Icon → full-screen cross-fade (ease-in-out)  |
+| Prop                    | Type          | Default     | Description                                              |
+| ----------------------- | ------------- | ----------- | -------------------------------------------------------- |
+| `image` **(required)**  | `string`      | —           | Full-screen splash PNG                                   |
+| `backgroundColor`       | `string`      | `"#FFFFFF"` | Hex color behind the icon layer                          |
+| `fadeIn`                | `number` (ms) | `250`       | Fade-in duration (ease-out)                              |
+| `fadeOut`               | `number` (ms) | `300`       | Fade-out when `hide({ fade: true })` (ease-in)           |
+| `iconDisplayMs`         | `number` (ms) | `1200`      | Hold between fade-in end and cross-fade start            |
+| `crossfadeMs`           | `number` (ms) | `400`       | Icon → full-screen cross-fade (ease-in-out)              |
 | `fullscreenHoldMs`      | `number` (ms) | `600`       | Min time full-screen visible before `hide()` can dismiss |
-| `baseWidth`             | `number`      | `360`       | Logical width used for density scaling       |
-| `baseHeight`            | `number`      | `800`       | Logical height used for density scaling      |
-| `iconSplash`            | `object`      | —           | Enables the icon layer                       |
-| `iconSplash.image`      | `string`      | —           | Icon PNG                                     |
-| `iconSplash.imageWidth` | `number`      | `200`       | Icon width in dp/pt                          |
-| `iconSplash.android`    | `boolean`     | `true`      | Enable icon on Android                       |
-| `iconSplash.ios`        | `boolean`     | `true`      | Enable icon on iOS                           |
+| `baseWidth`             | `number`      | `360`       | Logical width used for density scaling                   |
+| `baseHeight`            | `number`      | `800`       | Logical height used for density scaling                  |
+| `iconSplash`            | `object`      | —           | Enables the icon layer                                   |
+| `iconSplash.image`      | `string`      | —           | Icon PNG                                                 |
+| `iconSplash.imageWidth` | `number`      | `200`       | Icon width in dp/pt                                      |
+| `iconSplash.android`    | `boolean`     | `true`      | Enable icon on Android                                   |
+| `iconSplash.ios`        | `boolean`     | `true`      | Enable icon on iOS                                       |
 
 ## JS API
 

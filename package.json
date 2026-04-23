@@ -2,9 +2,6 @@
   "name": "expo-splash-full-screen",
   "version": "0.0.0-development",
   "private": false,
-  "publishConfig": {
-    "access": "public"
-  },
   "description": "Full-screen splash screen for Expo with optional icon-splash layer and fade animations. Bypasses Android 12+ Theme.SplashScreen icon-only enforcement.",
   "keywords": [
     "android",
@@ -15,15 +12,15 @@
     "react-native",
     "splash-screen"
   ],
+  "homepage": "https://github.com/miiny1206/expo-splash-full-screen#readme",
+  "bugs": {
+    "url": "https://github.com/miiny1206/expo-splash-full-screen/issues"
+  },
   "license": "MIT",
   "author": "miiny1206 <https://github.com/miiny1206>",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/miiny1206/expo-splash-full-screen.git"
-  },
-  "homepage": "https://github.com/miiny1206/expo-splash-full-screen#readme",
-  "bugs": {
-    "url": "https://github.com/miiny1206/expo-splash-full-screen/issues"
   },
   "files": [
     "build",
@@ -54,6 +51,9 @@
     "./app.plugin.js": "./app.plugin.js",
     "./plugin": "./plugin/build/index.js",
     "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "bun run build:module && bun run build:plugin",

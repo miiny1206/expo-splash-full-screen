@@ -3,17 +3,16 @@ import { describe, expect, test } from 'bun:test';
 import withSplashScreen from './index';
 import type { SplashScreenPluginProps } from './types';
 
-const baseConfig = () => ({
-  name: 'test',
-  slug: 'test',
-  mods: {},
-}) as never;
+const baseConfig = () =>
+  ({
+    name: 'test',
+    slug: 'test',
+    mods: {},
+  }) as never;
 
 describe('withSplashScreen', () => {
   test('does not throw on minimal valid props', () => {
-    expect(() =>
-      withSplashScreen(baseConfig(), { image: './splash.png' }),
-    ).not.toThrow();
+    expect(() => withSplashScreen(baseConfig(), { image: './splash.png' })).not.toThrow();
   });
 
   test('does not throw with full icon splash config', () => {
@@ -36,15 +35,13 @@ describe('withSplashScreen', () => {
   });
 
   test('throws synchronously when image is missing', () => {
-    expect(() =>
-      withSplashScreen(baseConfig(), undefined as never),
-    ).toThrow(/`image` prop is required/);
+    expect(() => withSplashScreen(baseConfig(), undefined as never)).toThrow(
+      /`image` prop is required/,
+    );
   });
 
   test('throws synchronously when image is empty', () => {
-    expect(() => withSplashScreen(baseConfig(), { image: '' })).toThrow(
-      /`image` prop is required/,
-    );
+    expect(() => withSplashScreen(baseConfig(), { image: '' })).toThrow(/`image` prop is required/);
   });
 
   test('registers mods instead of running them eagerly', () => {

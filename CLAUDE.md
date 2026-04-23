@@ -11,16 +11,16 @@
 
 When you edit one side, edit the pair in the same turn:
 
-| Write side                                                 | Read side                                                                             |
-| ---------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `plugin/src/ios.ts` Info.plist keys                        | `ios/SplashScreenOverlay.swift` `currentConfig()`                                     |
-| `plugin/src/android.ts` `<integer>`/`<bool>`/`<color>` names | `android/.../SplashScreenOverlay.kt` `getInt` / `getBool` / `getColor` lookups        |
-| `plugin/src/android.ts` drawable filenames                 | `android/.../SplashScreenOverlay.kt` `getIdentifier(..., "drawable", ...)`            |
-| `plugin/src/ios.ts` imageset names                         | `ios/SplashScreenOverlay.swift` `UIImage(named:)`                                     |
-| `plugin/src/types.ts` prop shape                           | `plugin/src/utils.ts` `normalize()` defaults + README Props table                     |
-| `src/SplashScreen.types.ts` JS API                         | `android/.../SplashScreenModule.kt` + `ios/SplashScreenModule.swift` AsyncFunction signatures + README JS API section |
-| Android Java package path                                  | `expo-module.config.json` `android.modules` + `android.packages` fully-qualified names |
-| iOS Swift module `Name("...")`                             | `src/SplashScreenModule.ts` `requireNativeModule('...')`                              |
+| Write side                                                   | Read side                                                                                                             |
+| ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| `plugin/src/ios.ts` Info.plist keys                          | `ios/SplashScreenOverlay.swift` `currentConfig()`                                                                     |
+| `plugin/src/android.ts` `<integer>`/`<bool>`/`<color>` names | `android/.../SplashScreenOverlay.kt` `getInt` / `getBool` / `getColor` lookups                                        |
+| `plugin/src/android.ts` drawable filenames                   | `android/.../SplashScreenOverlay.kt` `getIdentifier(..., "drawable", ...)`                                            |
+| `plugin/src/ios.ts` imageset names                           | `ios/SplashScreenOverlay.swift` `UIImage(named:)`                                                                     |
+| `plugin/src/types.ts` prop shape                             | `plugin/src/utils.ts` `normalize()` defaults + README Props table                                                     |
+| `src/SplashScreen.types.ts` JS API                           | `android/.../SplashScreenModule.kt` + `ios/SplashScreenModule.swift` AsyncFunction signatures + README JS API section |
+| Android Java package path                                    | `expo-module.config.json` `android.modules` + `android.packages` fully-qualified names                                |
+| iOS Swift module `Name("...")`                               | `src/SplashScreenModule.ts` `requireNativeModule('...')`                                                              |
 
 ## Verification Loop
 

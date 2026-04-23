@@ -20,7 +20,11 @@ function baseConfig() {
   return { name: 'test-app', slug: 'test-app' } as never;
 }
 
-function getMod(modded: unknown, platform: Platform, name: string): (cfg: unknown) => Promise<{ modResults: Record<string, unknown> }> {
+function getMod(
+  modded: unknown,
+  platform: Platform,
+  name: string,
+): (cfg: unknown) => Promise<{ modResults: Record<string, unknown> }> {
   const c = modded as { mods: Record<Platform, Record<string, unknown>> };
   const m = c.mods[platform][name];
   if (typeof m !== 'function') {
@@ -68,7 +72,9 @@ describe('android dangerous mods', () => {
 
     const resDir = path.join(platformProjectRoot, 'app/src/main/res');
     for (const density of ['mdpi', 'hdpi', 'xhdpi', 'xxhdpi', 'xxxhdpi']) {
-      expect(fs.existsSync(path.join(resDir, `drawable-${density}/splash_fullscreen.png`))).toBe(true);
+      expect(fs.existsSync(path.join(resDir, `drawable-${density}/splash_fullscreen.png`))).toBe(
+        true,
+      );
       expect(fs.existsSync(path.join(resDir, `drawable-${density}/splash_icon.png`))).toBe(true);
     }
 
@@ -179,7 +185,13 @@ describe('android styles mod', () => {
       },
     });
 
-    const out = (result.modResults as never as { resources: { style: Array<{ $: { name: string }; item: Array<{ $: { name: string }; _: string }> }> } }).resources.style;
+    const out = (
+      result.modResults as never as {
+        resources: {
+          style: Array<{ $: { name: string }; item: Array<{ $: { name: string }; _: string }> }>;
+        };
+      }
+    ).resources.style;
 
     const appTheme = out.find((s) => s.$.name === 'AppTheme')!;
     expect(appTheme.item.find((i) => i.$.name === 'android:windowBackground')!._).toBe(
@@ -241,7 +253,11 @@ describe('ios dangerous mods', () => {
     for (const suffix of ['', '@2x', '@3x']) {
       expect(
         fs.existsSync(
-          path.join(appDir, 'Images.xcassets/SplashFullScreen.imageset', `splashfullscreen${suffix}.png`),
+          path.join(
+            appDir,
+            'Images.xcassets/SplashFullScreen.imageset',
+            `splashfullscreen${suffix}.png`,
+          ),
         ),
       ).toBe(true);
       expect(
