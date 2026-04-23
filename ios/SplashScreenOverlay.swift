@@ -31,9 +31,10 @@ final class SplashScreenOverlay {
     if hasShown { return }
     hasShown = true
 
-    DispatchQueue.main.async {
-      self.present()
-    }
+    // Sync present from didFinishLaunchingWithOptions (already on main). Deferring to the next
+    // runloop via DispatchQueue.main.async lets UIKit paint one frame with the default window
+    // backgroundColor (usually white) before the overlay mounts → visible flicker on dark splashes.
+    present()
   }
 
   func showFullScreen() {
@@ -88,6 +89,10 @@ final class SplashScreenOverlay {
     guard let window = Self.keyWindow() else { return }
     let cfg = currentConfig()
 
+    // Paint window bg to splash bg before the overlay view is added, so any pre-layout frame
+    // (window already keyed but overlay subview not yet attached) matches the storyboard.
+    window.backgroundColor = cfg.backgroundColor
+
     launchTime = CFAbsoluteTimeGetCurrent()
     let hasIcon = cfg.iconEnabled && UIImage(named: cfg.iconImageName) != nil
     minVisible =
@@ -125,7 +130,10 @@ final class SplashScreenOverlay {
         height: size,
       )
       iv.autoresizingMask = [.flexibleTopMargin, .flexibleBottomMargin, .flexibleLeftMargin, .flexibleRightMargin]
-      iv.alpha = 0
+      // Start visible so the launch storyboard (bg + icon at the same iconWidth) hands off to the
+      // overlay without a black/invisible frame. fadeIn runs as a no-op animation below to keep
+      // the timeline intact.
+      iv.alpha = 1
       root.addSubview(iv)
       iconView = iv
       firstLayer = iv

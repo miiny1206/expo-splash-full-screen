@@ -61,7 +61,10 @@ object SplashScreenOverlay {
     if (fullscreenDrawableId != 0) {
       val fs = ImageView(activity).apply {
         setImageResource(fullscreenDrawableId)
-        scaleType = ImageView.ScaleType.CENTER_CROP
+        // FIT_XY matches the layer-list <bitmap android:gravity="fill"/> used for windowBackground
+        // when icon is disabled, so the cold-start drawable → overlay ImageView handoff renders the
+        // same image at the same size (no perceived resize jump).
+        scaleType = ImageView.ScaleType.FIT_XY
         layoutParams = FrameLayout.LayoutParams(
           FrameLayout.LayoutParams.MATCH_PARENT,
           FrameLayout.LayoutParams.MATCH_PARENT,
@@ -79,7 +82,10 @@ object SplashScreenOverlay {
         setImageResource(iconDrawableId)
         scaleType = ImageView.ScaleType.FIT_CENTER
         layoutParams = FrameLayout.LayoutParams(sizePx, sizePx, Gravity.CENTER)
-        alpha = 0f
+        // Start visible so the launch windowBackground (bg + icon at the same iconWidth) hands
+        // off to the overlay without a missing-icon frame. fadeIn still runs (as a no-op
+        // animation) below to keep the timeline intact.
+        alpha = 1f
       }
       frame.addView(iv)
       iconView = iv
