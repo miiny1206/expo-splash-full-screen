@@ -1,0 +1,7 @@
+node_modules/
+build/
+plugin/build/
+*.log
+.DS_Store
+ios/build/
+android/build/

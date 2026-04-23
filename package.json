@@ -1,0 +1,97 @@
+{
+  "name": "expo-splash-full-screen",
+  "version": "0.0.0-development",
+  "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "description": "Full-screen splash screen for Expo with optional icon-splash layer and fade animations. Bypasses Android 12+ Theme.SplashScreen icon-only enforcement.",
+  "keywords": [
+    "android",
+    "expo",
+    "expo-module",
+    "ios",
+    "launch-screen",
+    "react-native",
+    "splash-screen"
+  ],
+  "license": "MIT",
+  "author": "miiny1206 <https://github.com/miiny1206>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/miiny1206/expo-splash-full-screen.git"
+  },
+  "homepage": "https://github.com/miiny1206/expo-splash-full-screen#readme",
+  "bugs": {
+    "url": "https://github.com/miiny1206/expo-splash-full-screen/issues"
+  },
+  "files": [
+    "build",
+    "plugin/build",
+    "src",
+    "plugin/src",
+    "android/src",
+    "android/build.gradle",
+    "ios",
+    "app.plugin.js",
+    "expo-module.config.json",
+    "CHANGELOG.md",
+    "*.podspec",
+    "!android/build",
+    "!ios/build",
+    "!**/__tests__",
+    "!**/*.test.ts",
+    "!**/*.test.js",
+    "!**/*.test.d.ts"
+  ],
+  "main": "./build/index.js",
+  "types": "./build/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./build/index.d.ts",
+      "default": "./build/index.js"
+    },
+    "./app.plugin.js": "./app.plugin.js",
+    "./plugin": "./plugin/build/index.js",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "bun run build:module && bun run build:plugin",
+    "build:module": "tsgo --project tsconfig.json",
+    "build:plugin": "tsgo --project plugin/tsconfig.json",
+    "clean": "rm -rf build plugin/build",
+    "typecheck": "tsgo --noEmit --project tsconfig.json && tsgo --noEmit --project plugin/tsconfig.json",
+    "lint": "oxlint",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
+    "test": "bun test",
+    "release": "semantic-release",
+    "release:dry": "semantic-release --dry-run --no-ci",
+    "prepare": "bun run clean && bun run build"
+  },
+  "dependencies": {
+    "@expo/config-plugins": "^55.0.8"
+  },
+  "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^12.0.6",
+    "@semantic-release/npm": "^13.1.5",
+    "@semantic-release/release-notes-generator": "^14.1.0",
+    "@types/bun": "^1.3.13",
+    "@types/node": "^22.10.0",
+    "@types/react": "~19.2.10",
+    "@typescript/native-preview": "^7.0.0-dev.20260422.1",
+    "conventional-changelog-conventionalcommits": "^9.3.1",
+    "expo-modules-core": "~55.0.23",
+    "oxfmt": "^0.46.0",
+    "oxlint": "^1.61.0",
+    "semantic-release": "^25.0.3"
+  },
+  "peerDependencies": {
+    "expo": ">=54.0.0",
+    "react": ">=19.0.0",
+    "react-native": ">=0.80.0"
+  }
+}
