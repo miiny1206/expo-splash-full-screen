@@ -1,6 +1,6 @@
 {
   "name": "expo-splash-full-screen",
-  "version": "1.0.0",
+  "version": "0.0.0-development",
   "private": false,
   "description": "Full-screen splash screen for Expo with optional icon-splash layer and fade animations. Bypasses Android 12+ Theme.SplashScreen icon-only enforcement.",
   "keywords": [
