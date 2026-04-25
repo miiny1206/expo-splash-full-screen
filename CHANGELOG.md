@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/miiny1206/expo-splash-full-screen/compare/v1.0.1...v1.0.2) (2026-04-25)
+
+### Bug Fixes
+
+* **android:** guard dialog teardown against detached activity ([6bc838a](https://github.com/miiny1206/expo-splash-full-screen/commit/6bc838aeedaab2ce92bc2818acef2f35cbca4a6f))
+* **ios:** mount overlay via dedicated UIWindow above RN window ([96ecf8d](https://github.com/miiny1206/expo-splash-full-screen/commit/96ecf8df6a13326f17ade2dda499d84fe0533801))
+
 ## [1.0.1](https://github.com/miiny1206/expo-splash-full-screen/compare/v1.0.0...v1.0.1) (2026-04-23)
 
 ### Bug Fixes
