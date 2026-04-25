@@ -26,11 +26,13 @@ object SplashScreenOverlay {
   private var hasShown = false
   private var launchTimeMs: Long = 0L
   private var minVisibleMs: Long = 0L
+  private var boundActivity: Activity? = null
 
   @JvmStatic
   fun showOnActivityCreate(activity: Activity) {
     if (hasShown) return
     hasShown = true
+    boundActivity = activity
     if (dialog?.isShowing == true) return
 
     val res = activity.resources
@@ -135,11 +137,13 @@ object SplashScreenOverlay {
 
   @JvmStatic
   fun showFullScreen() {
-    cancelScheduled()
-    val crossfadeMs = rootFrame?.context?.let {
-      getInt(it.resources, it.packageName, "splash_crossfade_ms", 400).toLong()
-    } ?: 400L
-    crossfadeToFullScreen(crossfadeMs)
+    handler.post {
+      cancelScheduled()
+      val crossfadeMs = rootFrame?.context?.let {
+        getInt(it.resources, it.packageName, "splash_crossfade_ms", 400).toLong()
+      } ?: 400L
+      crossfadeToFullScreen(crossfadeMs)
+    }
   }
 
   private fun crossfadeToFullScreen(durationMs: Long) {
@@ -160,21 +164,46 @@ object SplashScreenOverlay {
 
   @JvmStatic
   fun hide(fade: Boolean, durationMs: Long) {
-    val d = dialog ?: return
-    scheduledHide?.let { handler.removeCallbacks(it) }
-    scheduledHide = null
+    handler.post {
+      val d = dialog ?: return@post
+      scheduledHide?.let { handler.removeCallbacks(it) }
+      scheduledHide = null
 
-    val elapsed = System.currentTimeMillis() - launchTimeMs
-    val remaining = minVisibleMs - elapsed
+      val elapsed = System.currentTimeMillis() - launchTimeMs
+      val remaining = minVisibleMs - elapsed
 
-    if (remaining > 0) {
-      val runnable = Runnable { fadeOutRoot(d, fade, durationMs) }
-      scheduledHide = runnable
-      handler.postDelayed(runnable, remaining)
-      return
+      if (remaining > 0) {
+        val runnable = Runnable { fadeOutRoot(d, fade, durationMs) }
+        scheduledHide = runnable
+        handler.postDelayed(runnable, remaining)
+        return@post
+      }
+
+      fadeOutRoot(d, fade, durationMs)
     }
+  }
 
-    fadeOutRoot(d, fade, durationMs)
+  @JvmStatic
+  fun onActivityDestroyed(activity: Activity) {
+    if (boundActivity !== activity) return
+    cancelScheduled()
+    val d = dialog
+    dialog = null
+    if (d != null) {
+      try {
+        if (d.isShowing && d.window?.decorView?.isAttachedToWindow == true) {
+          d.dismiss()
+        }
+      } catch (_: Throwable) {
+      }
+    }
+    rootFrame = null
+    iconView = null
+    fullscreenView = null
+    launchTimeMs = 0L
+    minVisibleMs = 0L
+    hasShown = false
+    boundActivity = null
   }
 
   private fun fadeOutRoot(d: Dialog, fade: Boolean, durationMs: Long) {
@@ -207,7 +236,10 @@ object SplashScreenOverlay {
 
   private fun dismissQuietly(d: Dialog) {
     try {
-      if (d.isShowing) d.dismiss()
+      val activity = boundActivity
+      val attached = d.window?.decorView?.isAttachedToWindow == true
+      val activityAlive = activity == null || (!activity.isFinishing && !activity.isDestroyed)
+      if (d.isShowing && attached && activityAlive) d.dismiss()
     } catch (_: Throwable) {
     }
   }

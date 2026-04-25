@@ -8,4 +8,8 @@ class SplashScreenActivityLifecycleListener : ReactActivityLifecycleListener {
   override fun onCreate(activity: Activity, savedInstanceState: Bundle?) {
     SplashScreenOverlay.showOnActivityCreate(activity)
   }
+
+  override fun onDestroy(activity: Activity) {
+    SplashScreenOverlay.onActivityDestroyed(activity)
+  }
 }
