@@ -17,6 +17,7 @@ export const withAndroid: ConfigPlugin<NormalizedProps> = (config, props) => {
   config = withAndroidDrawables(config, props);
   config = withAndroidSplashValues(config, props);
   config = withAndroidAppTheme(config, props);
+  config = withAndroidV31SplashTheme(config, props);
   return config;
 };
 
@@ -161,3 +162,42 @@ const withAndroidAppTheme: ConfigPlugin<NormalizedProps> = (config, props) =>
 
     return cfg;
   });
+
+// Android 12+ enforces a system splash screen using `windowSplashScreen*` attributes from the
+// launchTheme. Without an explicit `windowSplashScreenAnimatedIcon`, the OS falls back to the
+// app's launcher icon clipped to a ~108dp circle — visibly smaller than our overlay's icon
+// (default 200dp), producing a small-icon → big-icon size jump as the OS splash hands off to
+// our overlay.
+//
+// Shadow `Theme.App.SplashScreen` in `values-v31/styles.xml` so on API 31+ the OS splash
+// renders only the configured background color (transparent icon), and the overlay becomes the
+// single source of icon truth. The values/styles.xml entry written by withAndroidAppTheme still
+// applies on API 21–30. Re-asserting `windowBackground` here keeps the cold-start window
+// drawable consistent across API levels.
+const withAndroidV31SplashTheme: ConfigPlugin<NormalizedProps> = (config, props) =>
+  withDangerousMod(config, [
+    'android',
+    async (cfg) => {
+      const valuesV31Dir = path.join(
+        cfg.modRequest.platformProjectRoot,
+        'app/src/main/res/values-v31',
+      );
+      fs.mkdirSync(valuesV31Dir, { recursive: true });
+
+      const windowBgValue = props.iconSplash?.android
+        ? '@drawable/splash_icon_window'
+        : '@drawable/splash_fullscreen_window';
+
+      const xml = `<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.App.SplashScreen" parent="AppTheme">
+        <item name="android:windowBackground">${windowBgValue}</item>
+        <item name="android:windowSplashScreenBackground">@color/splash_background</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@android:color/transparent</item>
+    </style>
+</resources>
+`;
+      fs.writeFileSync(path.join(valuesV31Dir, 'styles.xml'), xml);
+      return cfg;
+    },
+  ]);
