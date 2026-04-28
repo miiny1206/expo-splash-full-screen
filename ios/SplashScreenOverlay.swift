@@ -16,6 +16,14 @@ final class SplashScreenOverlay: NSObject {
   private var devContentObserver: NSObjectProtocol?
   private var launchTime: CFAbsoluteTime = 0
   private var minVisible: TimeInterval = 0
+  // Tracks scene windows whose backgroundColor we overwrote at present() so we can restore them on
+  // teardown — otherwise apps that spawn secondary windows (alerts, share sheets) would inherit the
+  // splash bg permanently.
+  private var savedSceneBackgrounds: [(window: UIWindow, windowBg: UIColor?, viewBg: UIColor?)] = []
+  // Bridge into SplashScreenModule.sendEvent. Set by the module's OnCreate, cleared on OnDestroy.
+  // The module captures itself weakly so a JS reload that recreates the module does not leak via
+  // this closure.
+  private var eventEmitter: ((String, [String: Any?]) -> Void)?
 
   private struct Config {
     let iconEnabled: Bool
@@ -31,6 +39,19 @@ final class SplashScreenOverlay: NSObject {
   }
 
   override private init() { super.init() }
+
+  func setEventEmitter(_ emitter: ((String, [String: Any?]) -> Void)?) {
+    DispatchQueue.main.async {
+      self.eventEmitter = emitter
+    }
+  }
+
+  private func emit(_ name: String, _ body: [String: Any?] = [:]) {
+    // Always dispatch to main; the JS-side bridge marshals events from the main thread.
+    DispatchQueue.main.async { [weak self] in
+      self?.eventEmitter?(name, body)
+    }
+  }
 
   #if DEBUG
     @objc fileprivate func devTapDismiss() {
@@ -197,8 +218,14 @@ final class SplashScreenOverlay: NSObject {
   }
 
   private func tearDown(window: UIWindow) {
+    for entry in savedSceneBackgrounds {
+      entry.window.backgroundColor = entry.windowBg
+      entry.window.rootViewController?.view.backgroundColor = entry.viewBg
+    }
+    savedSceneBackgrounds = []
     window.isHidden = true
     reset()
+    emit("didHide")
   }
 
   private func present(in scene: UIWindowScene) {
@@ -210,6 +237,9 @@ final class SplashScreenOverlay: NSObject {
     // overlay window appearing — without this, that one-frame window would show RN's default
     // black bg, producing a black flash. Especially visible when iconSplash is disabled because
     // there's no icon overlay to mask it.
+    savedSceneBackgrounds = scene.windows.map { window in
+      (window, window.backgroundColor, window.rootViewController?.view.backgroundColor)
+    }
     for existing in scene.windows {
       existing.backgroundColor = cfg.backgroundColor
       existing.rootViewController?.view.backgroundColor = cfg.backgroundColor
@@ -289,6 +319,7 @@ final class SplashScreenOverlay: NSObject {
     // first-responder / keyboard / scene events continue to route to RN.
     window.isHidden = false
     overlayWindow = window
+    emit("didShow")
 
     if cfg.iconEnabled, iconView != nil, fullscreenView != nil {
       let work = DispatchWorkItem { [weak self] in
@@ -322,6 +353,7 @@ final class SplashScreenOverlay: NSObject {
     removeJsFailObserver()
     removeDevContentObserver()
     pendingHide = nil
+    savedSceneBackgrounds = []
   }
 
   private static func activeWindowScene() -> UIWindowScene? {
@@ -343,17 +375,19 @@ final class SplashScreenOverlay: NSObject {
     let crossfade = (info["SplashCrossfadeMs"] as? NSNumber)?.doubleValue ?? 400
     let fullscreenHold = (info["SplashFullscreenHoldMs"] as? NSNumber)?.doubleValue ?? 600
     let bgHex = info["SplashBackgroundColor"] as? String ?? "#FFFFFF"
+    // All Splash* duration values are written by the config plugin as milliseconds; convert to
+    // TimeInterval (seconds) for UIView.animate. Plugin layer validates the range.
     return Config(
       iconEnabled: iconEnabled,
       iconImageName: "SplashIcon",
       iconWidth: iconWidth,
       fullscreenImageName: "SplashFullScreen",
       backgroundColor: Self.color(fromHex: bgHex) ?? .white,
-      fadeIn: fadeIn / (fadeIn > 10 ? 1000 : 1),
-      fadeOut: fadeOut / (fadeOut > 10 ? 1000 : 1),
-      iconDisplay: iconDisplay / (iconDisplay > 10 ? 1000 : 1),
-      crossfade: crossfade / (crossfade > 10 ? 1000 : 1),
-      fullscreenHold: fullscreenHold / (fullscreenHold > 10 ? 1000 : 1),
+      fadeIn: fadeIn / 1000,
+      fadeOut: fadeOut / 1000,
+      iconDisplay: iconDisplay / 1000,
+      crossfade: crossfade / 1000,
+      fullscreenHold: fullscreenHold / 1000,
     )
   }
 

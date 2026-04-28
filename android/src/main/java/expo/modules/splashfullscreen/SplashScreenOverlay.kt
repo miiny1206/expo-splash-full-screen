@@ -2,18 +2,23 @@ package expo.modules.splashfullscreen
 
 import android.app.Activity
 import android.app.Dialog
+import android.content.pm.ApplicationInfo
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
 import android.view.WindowManager
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.PathInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageView
+import androidx.core.view.WindowCompat
+import java.lang.ref.WeakReference
 
 object SplashScreenOverlay {
   private var dialog: Dialog? = null
@@ -26,14 +31,31 @@ object SplashScreenOverlay {
   private var hasShown = false
   private var launchTimeMs: Long = 0L
   private var minVisibleMs: Long = 0L
-  private var boundActivity: Activity? = null
+  // WeakReference avoids retaining a destroyed Activity in this app-scoped singleton if
+  // onActivityDestroyed is never called (e.g. process death edge cases or non-RN host activities).
+  private var boundActivityRef: WeakReference<Activity>? = null
+  // Bridge into SplashScreenModule.sendEvent. Set by the module's OnCreate, cleared on OnDestroy.
+  // The module captures itself weakly so a JS reload that recreates the module does not leak via
+  // this closure.
+  private var eventEmitter: ((String, Map<String, Any?>) -> Unit)? = null
+
+  private fun boundActivity(): Activity? = boundActivityRef?.get()
+
+  @JvmStatic
+  fun setEventEmitter(emitter: ((String, Map<String, Any?>) -> Unit)?) {
+    handler.post { eventEmitter = emitter }
+  }
+
+  private fun emit(name: String, body: Map<String, Any?> = emptyMap()) {
+    handler.post { eventEmitter?.invoke(name, body) }
+  }
 
   @JvmStatic
   fun showOnActivityCreate(activity: Activity) {
     if (hasShown) return
     hasShown = true
-    boundActivity = activity
-    if (dialog?.isShowing == true) return
+    boundActivityRef = WeakReference(activity)
+    if (dialog?.isShowing == true || rootFrame?.parent != null) return
 
     val res = activity.resources
     val pkg = activity.packageName
@@ -106,19 +128,29 @@ object SplashScreenOverlay {
           WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
           WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
         )
-        statusBarColor = Color.TRANSPARENT
-        navigationBarColor = Color.TRANSPARENT
+        // Edge-to-edge: draw under status/nav bars. On API 35+ this is enforced by the platform
+        // and statusBarColor/navigationBarColor are no-ops; on older versions WindowCompat applies
+        // the legacy decor flags so behavior matches across API levels.
+        WindowCompat.setDecorFitsSystemWindows(this, false)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+          @Suppress("DEPRECATION")
+          statusBarColor = Color.TRANSPARENT
+          @Suppress("DEPRECATION")
+          navigationBarColor = Color.TRANSPARENT
+        }
       }
     }
 
     try {
       d.show()
-    } catch (_: Throwable) {
+    } catch (e: Throwable) {
+      emit("didFail", mapOf("reason" to (e.message ?: "Dialog.show threw")))
       return
     }
 
     dialog = d
     rootFrame = frame
+    emit("didShow")
 
     val firstLayer: View? = if (iconEnabled && iconDrawableId != 0) iconView else fullscreenView
     firstLayer
@@ -132,6 +164,19 @@ object SplashScreenOverlay {
       val runnable = Runnable { crossfadeToFullScreen(crossfadeMs.toLong()) }
       scheduledFullscreen = runnable
       handler.postDelayed(runnable, (fadeInMs + iconDisplayMs).toLong())
+    }
+
+    // In dev builds expo-dev-launcher / Metro UI may not load if the connection fails (VPN,
+    // DNS, wrong network). Without a fallback hide, the Dialog stays up forever and blocks
+    // the launcher's recovery UI. Hard 2.5s auto-fade mirrors iOS's #if DEBUG auto-hide
+    // (SplashScreenOverlay.swift devTapDismiss / 2.5s asyncAfter) so the user always gets
+    // back to the launcher / Metro progress UI even if no RN content loads. forceHide
+    // bypasses minVisibleMs — in dev we prioritize unblocking the launcher over the brand
+    // moment.
+    if ((activity.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
+      val devAutoHide = Runnable { forceHide(fade = true, durationMs = 200L) }
+      scheduledHide = devAutoHide
+      handler.postDelayed(devAutoHide, 2500L)
     }
   }
 
@@ -162,13 +207,23 @@ object SplashScreenOverlay {
       ?.start()
   }
 
+  // Bypass minVisibleMs and fade out immediately. Used by the dev auto-hide fallback —
+  // mirrors iOS forceHide.
+  private fun forceHide(fade: Boolean, durationMs: Long) {
+    handler.post {
+      cancelScheduled()
+      val d = dialog ?: return@post
+      fadeOutRoot(d, fade, durationMs)
+    }
+  }
+
   @JvmStatic
   fun hide(fade: Boolean, durationMs: Long) {
     handler.post {
-      val d = dialog ?: return@post
       scheduledHide?.let { handler.removeCallbacks(it) }
       scheduledHide = null
 
+      val d = dialog ?: return@post
       val elapsed = System.currentTimeMillis() - launchTimeMs
       val remaining = minVisibleMs - elapsed
 
@@ -185,7 +240,7 @@ object SplashScreenOverlay {
 
   @JvmStatic
   fun onActivityDestroyed(activity: Activity) {
-    if (boundActivity !== activity) return
+    if (boundActivity() !== activity) return
     cancelScheduled()
     val d = dialog
     dialog = null
@@ -197,13 +252,14 @@ object SplashScreenOverlay {
       } catch (_: Throwable) {
       }
     }
+    rootFrame?.let { (it.parent as? ViewGroup)?.removeView(it) }
     rootFrame = null
     iconView = null
     fullscreenView = null
     launchTimeMs = 0L
     minVisibleMs = 0L
     hasShown = false
-    boundActivity = null
+    boundActivityRef = null
   }
 
   private fun fadeOutRoot(d: Dialog, fade: Boolean, durationMs: Long) {
@@ -216,14 +272,17 @@ object SplashScreenOverlay {
         ?.withEndAction {
           dismissQuietly(d)
           reset()
+          emit("didHide")
         }
         ?.start() ?: run {
         dismissQuietly(d)
         reset()
+        emit("didHide")
       }
     } else {
       dismissQuietly(d)
       reset()
+      emit("didHide")
     }
   }
 
@@ -236,7 +295,7 @@ object SplashScreenOverlay {
 
   private fun dismissQuietly(d: Dialog) {
     try {
-      val activity = boundActivity
+      val activity = boundActivity()
       val attached = d.window?.decorView?.isAttachedToWindow == true
       val activityAlive = activity == null || (!activity.isFinishing && !activity.isDestroyed)
       if (d.isShowing && attached && activityAlive) d.dismiss()
@@ -251,6 +310,7 @@ object SplashScreenOverlay {
     fullscreenView = null
     launchTimeMs = 0L
     minVisibleMs = 0L
+    boundActivityRef = null
   }
 
   private fun getBool(res: android.content.res.Resources, pkg: String, name: String, default: Boolean): Boolean {
