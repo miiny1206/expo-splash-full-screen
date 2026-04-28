@@ -1,0 +1,116 @@
+name: Bug report
+description: Report a problem with the splash overlay, plugin, or autolinking.
+title: '[bug]: '
+labels: ['bug', 'triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing. Please complete every section so the issue is reproducible.
+
+  - type: input
+    id: lib-version
+    attributes:
+      label: expo-splash-full-screen version
+      placeholder: '1.0.1'
+    validations:
+      required: true
+
+  - type: input
+    id: expo-sdk
+    attributes:
+      label: Expo SDK
+      placeholder: '54.0.0'
+    validations:
+      required: true
+
+  - type: input
+    id: rn-version
+    attributes:
+      label: React Native version
+      placeholder: '0.80.0'
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platforms
+    attributes:
+      label: Platforms affected
+      multiple: true
+      options:
+        - iOS
+        - Android
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: Device(s) and OS version
+      description: e.g. "Pixel 7 (Android 14)", "iPhone 15 Pro (iOS 17.5)", "Samsung Galaxy S23 (One UI 6, Android 14)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: build-type
+    attributes:
+      label: Build type
+      options:
+        - 'expo run (debug)'
+        - 'expo run (release)'
+        - 'EAS Build (development)'
+        - 'EAS Build (preview)'
+        - 'EAS Build (production)'
+        - 'Other'
+    validations:
+      required: true
+
+  - type: textarea
+    id: plugin-config
+    attributes:
+      label: Plugin config
+      description: Paste the `expo-splash-full-screen` block from your `app.json`.
+      render: json
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction steps
+      description: Numbered steps. A minimal reproduction repo is hugely helpful.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include screenshots / videos if visual.
+    validations:
+      required: true
+
+  - type: textarea
+    id: autolink-output
+    attributes:
+      label: Autolink output (Android only)
+      description: |
+        Run and paste output:
+        ```
+        bunx expo-modules-autolinking resolve --platform android --json | grep -A3 splashfullscreen
+        ```
+      render: text
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Native logs (`adb logcat` / Console.app) and JS error output.
+      render: text

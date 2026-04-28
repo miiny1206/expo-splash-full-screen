@@ -1,0 +1,40 @@
+name: Feature request
+description: Suggest an enhancement or new capability.
+title: '[feat]: '
+labels: ['enhancement']
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What use case is unsupported today? Why does the current API fall short?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed
+    attributes:
+      label: Proposed solution
+      description: Sketch the API or behavior. Include sample plugin config or JS calls.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other libraries, workarounds, or approaches you ruled out.
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Affects
+      multiple: true
+      options:
+        - Plugin (config / prebuild)
+        - Native iOS
+        - Native Android
+        - JS API
+        - Docs
+    validations:
+      required: true

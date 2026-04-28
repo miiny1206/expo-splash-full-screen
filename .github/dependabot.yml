@@ -1,0 +1,27 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      semantic-release:
+        patterns:
+          - '@semantic-release/*'
+          - semantic-release
+      types:
+        patterns:
+          - '@types/*'
+    ignore:
+      # Pinned by Expo SDK compatibility — bump manually with SDK upgrades.
+      - dependency-name: expo-modules-core
+      - dependency-name: '@expo/config-plugins'
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
