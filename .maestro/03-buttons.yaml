@@ -1,0 +1,18 @@
+# After splash auto-hides, the manual buttons must not crash the app even though they are no-ops
+# post-dismiss (showFullScreen / hide on a teardown overlay are guarded). App stays interactive.
+appId: com.example.splashfullscreen
+name: buttons
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: 'expo-splash-full-screen'
+    timeout: 15000
+- tapOn:
+    id: 'btn-show-fullscreen'
+- tapOn:
+    id: 'btn-hide'
+- tapOn:
+    id: 'btn-hide-instant'
+- assertVisible: 'expo-splash-full-screen'
+- assertVisible: 'Event log'

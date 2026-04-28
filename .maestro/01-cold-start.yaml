@@ -1,0 +1,13 @@
+# Cold start: splash overlay → auto-hide via app's hide() call → app UI visible + events logged.
+appId: com.example.splashfullscreen
+name: cold-start
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: 'expo-splash-full-screen'
+    timeout: 15000
+- assertVisible: 'Event log'
+- assertVisible: 'didShow'
+- assertVisible: 'didHide'
+- assertVisible: 'listeners attached'

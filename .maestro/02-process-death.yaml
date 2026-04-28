@@ -1,0 +1,17 @@
+# Simulate process death (force-stop) and verify splash replays on relaunch (cold-start path re-runs).
+appId: com.example.splashfullscreen
+name: process-death
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: 'expo-splash-full-screen'
+    timeout: 15000
+- assertVisible: 'didHide'
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: 'expo-splash-full-screen'
+    timeout: 15000
+- assertVisible: 'didShow'
+- assertVisible: 'didHide'

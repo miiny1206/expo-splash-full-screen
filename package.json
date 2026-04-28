@@ -67,7 +67,8 @@
     "test": "bun test",
     "release": "semantic-release",
     "release:dry": "semantic-release --dry-run --no-ci",
-    "prepare": "bun run clean && bun run build"
+    "prepare": "bun run clean && bun run build",
+    "example:bootstrap": "bash scripts/example-bootstrap.sh"
   },
   "dependencies": {
     "@expo/config-plugins": "^55.0.8"

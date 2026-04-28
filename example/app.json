@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "splash-example",
+    "slug": "splash-example",
+    "version": "0.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.example.splashfullscreen"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0A0A0A"
+      },
+      "package": "com.example.splashfullscreen"
+    },
+    "plugins": [
+      [
+        "expo-splash-full-screen",
+        {
+          "image": "./assets/splash.png",
+          "backgroundColor": "#0A0A0A",
+          "fadeIn": 250,
+          "fadeOut": 300,
+          "iconDisplayMs": 1200,
+          "crossfadeMs": 400,
+          "iconSplash": {
+            "image": "./assets/splash-icon.png",
+            "imageWidth": 200,
+            "android": true,
+            "ios": true
+          }
+        }
+      ]
+    ]
+  }
+}
