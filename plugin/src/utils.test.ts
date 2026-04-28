@@ -92,6 +92,74 @@ describe('normalize', () => {
     normalize(input);
     expect(input).toEqual(snapshot);
   });
+
+  describe('validation', () => {
+    test('rejects negative fadeIn', () => {
+      expect(() => normalize({ image: './splash.png', fadeIn: -1 })).toThrow(/fadeIn/);
+    });
+
+    test('rejects fadeIn over 60s sanity bound', () => {
+      expect(() => normalize({ image: './splash.png', fadeIn: 60_001 })).toThrow(/fadeIn/);
+    });
+
+    test('rejects non-finite fadeIn', () => {
+      expect(() => normalize({ image: './splash.png', fadeIn: Number.NaN })).toThrow(/fadeIn/);
+    });
+
+    test('rejects invalid backgroundColor format', () => {
+      expect(() => normalize({ image: './splash.png', backgroundColor: 'red' })).toThrow(
+        /backgroundColor/,
+      );
+    });
+
+    test('accepts #RGB shorthand backgroundColor', () => {
+      expect(() => normalize({ image: './splash.png', backgroundColor: '#FFF' })).not.toThrow();
+    });
+
+    test('accepts #RRGGBBAA backgroundColor', () => {
+      expect(() =>
+        normalize({ image: './splash.png', backgroundColor: '#0A0A0AFF' }),
+      ).not.toThrow();
+    });
+
+    test('rejects invalid resizeMode', () => {
+      expect(() => normalize({ image: './splash.png', resizeMode: 'stretch' as never })).toThrow(
+        /resizeMode/,
+      );
+    });
+
+    test('rejects iconSplash without image', () => {
+      expect(() =>
+        normalize({ image: './splash.png', iconSplash: { image: '' } as never }),
+      ).toThrow(/iconSplash\.image/);
+    });
+
+    test('rejects iconSplash imageWidth ≤ 0', () => {
+      expect(() =>
+        normalize({
+          image: './splash.png',
+          iconSplash: { image: './icon.png', imageWidth: 0 },
+        }),
+      ).toThrow(/iconSplash\.imageWidth/);
+    });
+
+    test('rejects iconSplash imageWidth > 1000', () => {
+      expect(() =>
+        normalize({
+          image: './splash.png',
+          iconSplash: { image: './icon.png', imageWidth: 2000 },
+        }),
+      ).toThrow(/iconSplash\.imageWidth/);
+    });
+
+    test('rejects baseWidth ≤ 0', () => {
+      expect(() => normalize({ image: './splash.png', baseWidth: 0 })).toThrow(/baseWidth/);
+    });
+
+    test('rejects baseHeight > 4096', () => {
+      expect(() => normalize({ image: './splash.png', baseHeight: 5000 })).toThrow(/baseHeight/);
+    });
+  });
 });
 
 describe('hexToRgb01', () => {

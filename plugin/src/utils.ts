@@ -1,35 +1,96 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 
-import type { NormalizedProps, SplashScreenPluginProps } from './types';
+import type { NormalizedProps, ResizeMode, SplashScreenPluginProps } from './types';
 
 const PKG = 'expo-splash-full-screen';
+const MS_MAX = 60_000;
+const ICON_WIDTH_MAX = 1000;
+const DIMENSION_MAX = 4096;
+const HEX_RE = /^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
+const RESIZE_MODES: readonly ResizeMode[] = ['cover', 'contain'];
+
+function assertMs(name: string, value: number): void {
+  if (!Number.isFinite(value) || value < 0 || value > MS_MAX) {
+    throw new Error(
+      `[${PKG}] \`${name}\` must be a finite number between 0 and ${MS_MAX} (ms). Got: ${value}`,
+    );
+  }
+}
+
+function assertPositiveBounded(name: string, value: number, max: number): void {
+  if (!Number.isFinite(value) || value <= 0 || value > max) {
+    throw new Error(`[${PKG}] \`${name}\` must be a positive number ≤ ${max}. Got: ${value}`);
+  }
+}
+
+function assertHexColor(name: string, value: string): void {
+  if (typeof value !== 'string' || !HEX_RE.test(value)) {
+    throw new Error(
+      `[${PKG}] \`${name}\` must be a hex color (#RGB, #RRGGBB, or #RRGGBBAA). Got: ${value}`,
+    );
+  }
+}
+
+function assertResizeMode(value: string): asserts value is ResizeMode {
+  if (!RESIZE_MODES.includes(value as ResizeMode)) {
+    throw new Error(
+      `[${PKG}] \`resizeMode\` must be one of ${RESIZE_MODES.join(' | ')}. Got: ${value}`,
+    );
+  }
+}
 
 export function normalize(raw: SplashScreenPluginProps | undefined): NormalizedProps {
   if (!raw || !raw.image) {
     throw new Error(`[${PKG}] \`image\` prop is required.`);
   }
 
-  const iconSplash = raw.iconSplash
-    ? {
-        image: raw.iconSplash.image,
-        imageWidth: raw.iconSplash.imageWidth ?? 200,
-        android: raw.iconSplash.android ?? true,
-        ios: raw.iconSplash.ios ?? true,
-      }
-    : null;
+  const fadeIn = raw.fadeIn ?? 250;
+  const fadeOut = raw.fadeOut ?? 300;
+  const iconDisplayMs = raw.iconDisplayMs ?? 1200;
+  const crossfadeMs = raw.crossfadeMs ?? 400;
+  const fullscreenHoldMs = raw.fullscreenHoldMs ?? 600;
+  const baseWidth = raw.baseWidth ?? 360;
+  const baseHeight = raw.baseHeight ?? 800;
+  const backgroundColor = raw.backgroundColor ?? '#FFFFFF';
+  const resizeMode = raw.resizeMode ?? 'cover';
+
+  assertMs('fadeIn', fadeIn);
+  assertMs('fadeOut', fadeOut);
+  assertMs('iconDisplayMs', iconDisplayMs);
+  assertMs('crossfadeMs', crossfadeMs);
+  assertMs('fullscreenHoldMs', fullscreenHoldMs);
+  assertPositiveBounded('baseWidth', baseWidth, DIMENSION_MAX);
+  assertPositiveBounded('baseHeight', baseHeight, DIMENSION_MAX);
+  assertHexColor('backgroundColor', backgroundColor);
+  assertResizeMode(resizeMode);
+
+  let iconSplash: NormalizedProps['iconSplash'] = null;
+  if (raw.iconSplash) {
+    if (!raw.iconSplash.image) {
+      throw new Error(`[${PKG}] \`iconSplash.image\` is required when iconSplash is provided.`);
+    }
+    const imageWidth = raw.iconSplash.imageWidth ?? 200;
+    assertPositiveBounded('iconSplash.imageWidth', imageWidth, ICON_WIDTH_MAX);
+    iconSplash = {
+      image: raw.iconSplash.image,
+      imageWidth,
+      android: raw.iconSplash.android ?? true,
+      ios: raw.iconSplash.ios ?? true,
+    };
+  }
 
   return {
     image: raw.image,
-    backgroundColor: raw.backgroundColor ?? '#FFFFFF',
-    resizeMode: raw.resizeMode ?? 'cover',
-    fadeIn: raw.fadeIn ?? 250,
-    fadeOut: raw.fadeOut ?? 300,
-    iconDisplayMs: raw.iconDisplayMs ?? 1200,
-    crossfadeMs: raw.crossfadeMs ?? 400,
-    fullscreenHoldMs: raw.fullscreenHoldMs ?? 600,
-    baseWidth: raw.baseWidth ?? 360,
-    baseHeight: raw.baseHeight ?? 800,
+    backgroundColor,
+    resizeMode,
+    fadeIn,
+    fadeOut,
+    iconDisplayMs,
+    crossfadeMs,
+    fullscreenHoldMs,
+    baseWidth,
+    baseHeight,
     iconSplash,
   };
 }
