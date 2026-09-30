@@ -34,7 +34,8 @@
             "ios": true
           }
         }
-      ]
+      ],
+      "expo-status-bar"
     ]
   }
 }

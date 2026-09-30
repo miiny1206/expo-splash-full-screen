@@ -13,10 +13,10 @@ Full-screen splash screen for Expo. Supports an optional icon layer that cross-f
 
 | Stack        | Minimum    | Verified           |
 | ------------ | ---------- | ------------------ |
-| Expo SDK     | 54         | 54, 55             |
-| React Native | 0.80       | 0.80, 0.81         |
+| Expo SDK     | 54         | 54, 55, 57         |
+| React Native | 0.80       | 0.80, 0.81, 0.86   |
 | React        | 19         | 19                 |
-| iOS          | 15.1       | 15.1 – 18          |
+| iOS          | 15.1       | 15.1 – 26          |
 | Android      | API 24 (7) | 24, 30, 33, 34, 35 |
 | Node (build) | 22         | 22                 |
 | Bun          | 1.x        | latest             |
@@ -26,6 +26,7 @@ Full-screen splash screen for Expo. Supports an optional icon layer that cross-f
 | Library | Expo SDK |
 | ------- | -------- |
 | 1.0.x   | 54 – 55  |
+| 1.1.x   | 54 – 57  |
 
 ### New Architecture
 

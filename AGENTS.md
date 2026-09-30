@@ -76,7 +76,7 @@ Bun unit tests + native E2E via Maestro. Verify changes by:
    - `ios/<App>/SplashScreen.storyboard` — backgroundColor matches plugin prop; icon present iff `iconSplash.ios`.
 4. `bunx expo-modules-autolinking resolve --platform android --json` — `packages[]` must contain `expo.modules.splashfullscreen.SplashScreenPackage`. Empty = autolink broken.
 5. User runs `bunx expo run:android` / `run:ios` on their side.
-6. (Optional) `maestro test .maestro` against a booted simulator/emulator with the example installed. CI runs the same flows on every PR via the `android-e2e` (API 35) and `ios-e2e` (macos-15, latest sim) jobs.
+6. (Optional) `maestro test .maestro` against a booted simulator/emulator with the example installed. CI runs the same flows on every PR via the `android-e2e` (API 35) and `ios-e2e` (macos-26, latest sim) jobs.
 
 ## Lint / Format Policy
 
