@@ -1,3 +1,9 @@
+## [1.1.1](https://github.com/miiny1206/expo-splash-full-screen/compare/v1.1.0...v1.1.1) (2026-09-30)
+
+### Bug Fixes
+
+* **plugin:** resolve config-plugins from the app's expo ([4170a32](https://github.com/miiny1206/expo-splash-full-screen/commit/4170a3203fdf6503ea3188068f5f895ef6956901))
+
 ## [1.1.0](https://github.com/miiny1206/expo-splash-full-screen/compare/v1.0.2...v1.1.0) (2026-04-28)
 
 ### Features
