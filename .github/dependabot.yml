@@ -15,8 +15,12 @@ updates:
           - '@types/*'
     ignore:
       # Pinned by Expo SDK compatibility — bump manually with SDK upgrades.
+      - dependency-name: expo
       - dependency-name: expo-modules-core
-      - dependency-name: '@expo/config-plugins'
+      # v10 needs conventional-changelog-writer 9; @semantic-release/release-notes-generator 14
+      # still ships writer 8 and fails generateNotes.
+      - dependency-name: conventional-changelog-conventionalcommits
+        update-types: ['version-update:semver-major']
     open-pull-requests-limit: 5
 
   - package-ecosystem: github-actions
