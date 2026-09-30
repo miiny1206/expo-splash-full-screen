@@ -8,6 +8,15 @@ name: cold-start
     visible: 'expo-splash-full-screen'
     timeout: 15000
 - assertVisible: 'Event log'
-- assertVisible: 'didShow'
-- assertVisible: 'didHide'
-- assertVisible: 'listeners attached'
+- extendedWaitUntil:
+    visible:
+      id: 'log-didShow'
+    timeout: 10000
+- extendedWaitUntil:
+    visible:
+      id: 'log-didHide'
+    timeout: 10000
+- extendedWaitUntil:
+    visible:
+      id: 'log-listeners attached'
+    timeout: 10000

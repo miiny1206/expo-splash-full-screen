@@ -7,11 +7,20 @@ name: process-death
 - extendedWaitUntil:
     visible: 'expo-splash-full-screen'
     timeout: 15000
-- assertVisible: 'didHide'
+- extendedWaitUntil:
+    visible:
+      id: 'log-didHide'
+    timeout: 10000
 - stopApp
 - launchApp
 - extendedWaitUntil:
     visible: 'expo-splash-full-screen'
     timeout: 15000
-- assertVisible: 'didShow'
-- assertVisible: 'didHide'
+- extendedWaitUntil:
+    visible:
+      id: 'log-didShow'
+    timeout: 10000
+- extendedWaitUntil:
+    visible:
+      id: 'log-didHide'
+    timeout: 10000
