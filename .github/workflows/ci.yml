@@ -117,13 +117,10 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot-save -noaudio -no-boot-anim
           disable-animations: true
+          # The runner executes each line in its own shell: no `cd` or variables carry over.
           script: |
-            set -e
-            cd example/android
-            ./gradlew :app:assembleDebug -x lint
-            APK=$(find app/build/outputs/apk/debug -name "*.apk" | head -n1)
-            adb install -r "$APK"
-            cd ../..
+            ./example/android/gradlew -p example/android :app:assembleDebug -x lint
+            adb install -r example/android/app/build/outputs/apk/debug/app-debug.apk
             maestro test .maestro --format junit --output maestro-android.xml
 
       - name: Upload Maestro report
@@ -164,10 +161,15 @@ jobs:
         id: sim
         run: |
           set -e
-          # Pick the newest available iPhone 16-class simulator on the runner.
-          UDID=$(xcrun simctl list devices available | grep -E "iPhone 16( |\\()" | head -n1 | grep -oE "[A-F0-9-]{36}")
+          # Runner images rotate device models, so pick any iPhone on the newest iOS runtime.
+          UDID=$(xcrun simctl list devices available -j | jq -r '
+            .devices | to_entries
+            | map(select(.key | test("SimRuntime\\.iOS-")) | select(.value | any(.name | startswith("iPhone"))))
+            | sort_by(.key | capture("iOS-(?<v>[0-9-]+)").v | split("-") | map(tonumber))
+            | last.value | map(select(.name | startswith("iPhone"))) | first.udid // empty')
           if [ -z "$UDID" ]; then
-            UDID=$(xcrun simctl list devices available | grep -E "iPhone 1[5-9]( |\\()" | head -n1 | grep -oE "[A-F0-9-]{36}")
+            xcrun simctl list devices available
+            exit 1
           fi
           echo "Using simulator UDID=$UDID"
           xcrun simctl boot "$UDID" || true
