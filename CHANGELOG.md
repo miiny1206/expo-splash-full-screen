@@ -1,3 +1,9 @@
+## [1.1.2](https://github.com/miiny1206/expo-splash-full-screen/compare/v1.1.1...v1.1.2) (2026-09-30)
+
+### Bug Fixes
+
+* **ios,android:** deliver launch-time events to the first listener ([fdc18b0](https://github.com/miiny1206/expo-splash-full-screen/commit/fdc18b00ff9a778184596fd4f462a5daa88576b6))
+
 ## [1.1.1](https://github.com/miiny1206/expo-splash-full-screen/compare/v1.1.0...v1.1.1) (2026-09-30)
 
 ### Bug Fixes
