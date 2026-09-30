@@ -24,6 +24,11 @@ final class SplashScreenOverlay: NSObject {
   // The module captures itself weakly so a JS reload that recreates the module does not leak via
   // this closure.
   private var eventEmitter: ((String, [String: Any?]) -> Void)?
+  // The cold-start overlay mounts (didShow / didFail) before JS has even created the module, let
+  // alone subscribed, and sendEvent without a listener is dropped. Hold the latest unheard body per
+  // event and hand it to the first listener that subscribes.
+  private var observedEvents = Set<String>()
+  private var undeliveredEvents: [String: [String: Any?]] = [:]
 
   private struct Config {
     let iconEnabled: Bool
@@ -43,13 +48,35 @@ final class SplashScreenOverlay: NSObject {
   func setEventEmitter(_ emitter: ((String, [String: Any?]) -> Void)?) {
     DispatchQueue.main.async {
       self.eventEmitter = emitter
+      // A new module instance (JS reload) starts with no subscribers.
+      self.observedEvents.removeAll()
+    }
+  }
+
+  func startObserving(_ name: String) {
+    DispatchQueue.main.async {
+      self.observedEvents.insert(name)
+      if let body = self.undeliveredEvents.removeValue(forKey: name) {
+        self.eventEmitter?(name, body)
+      }
+    }
+  }
+
+  func stopObserving(_ name: String) {
+    DispatchQueue.main.async {
+      self.observedEvents.remove(name)
     }
   }
 
   private func emit(_ name: String, _ body: [String: Any?] = [:]) {
     // Always dispatch to main; the JS-side bridge marshals events from the main thread.
     DispatchQueue.main.async { [weak self] in
-      self?.eventEmitter?(name, body)
+      guard let self = self else { return }
+      if let emitter = self.eventEmitter, self.observedEvents.contains(name) {
+        emitter(name, body)
+      } else {
+        self.undeliveredEvents[name] = body
+      }
     }
   }
 

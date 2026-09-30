@@ -18,6 +18,13 @@ public class SplashScreenModule: Module {
       SplashScreenOverlay.shared.setEventEmitter(nil)
     }
 
+    OnStartObserving("didShow") { SplashScreenOverlay.shared.startObserving("didShow") }
+    OnStartObserving("didHide") { SplashScreenOverlay.shared.startObserving("didHide") }
+    OnStartObserving("didFail") { SplashScreenOverlay.shared.startObserving("didFail") }
+    OnStopObserving("didShow") { SplashScreenOverlay.shared.stopObserving("didShow") }
+    OnStopObserving("didHide") { SplashScreenOverlay.shared.stopObserving("didHide") }
+    OnStopObserving("didFail") { SplashScreenOverlay.shared.stopObserving("didFail") }
+
     AsyncFunction("showFullScreen") {
       SplashScreenOverlay.shared.showFullScreen()
     }

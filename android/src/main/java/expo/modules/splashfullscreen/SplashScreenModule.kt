@@ -23,6 +23,11 @@ class SplashScreenModule : Module() {
       SplashScreenOverlay.setEventEmitter(null)
     }
 
+    for (event in listOf("didShow", "didHide", "didFail")) {
+      OnStartObserving(event) { SplashScreenOverlay.startObserving(event) }
+      OnStopObserving(event) { SplashScreenOverlay.stopObserving(event) }
+    }
+
     AsyncFunction("showFullScreen") {
       SplashScreenOverlay.showFullScreen()
     }

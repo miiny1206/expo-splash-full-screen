@@ -141,6 +141,8 @@ failSub.remove();
 | `didHide` | none                | Overlay teardown complete (after fade-out).             |
 | `didFail` | `{ reason: string}` | Overlay failed to mount. Splash will not show this run. |
 
+The cold-start overlay mounts before JS runs. An event fired while nothing listens to it is held (latest one per event) and delivered to the first listener that subscribes, so `didShow` / `didFail` from launch still reach a listener added in your root component.
+
 ## Timing
 
 The natural timeline from overlay mount:

@@ -38,16 +38,45 @@ object SplashScreenOverlay {
   // The module captures itself weakly so a JS reload that recreates the module does not leak via
   // this closure.
   private var eventEmitter: ((String, Map<String, Any?>) -> Unit)? = null
+  // The cold-start overlay mounts (didShow / didFail) before JS has even created the module, let
+  // alone subscribed, and sendEvent without a listener is dropped. Hold the latest unheard body per
+  // event and hand it to the first listener that subscribes.
+  private val observedEvents = mutableSetOf<String>()
+  private val undeliveredEvents = mutableMapOf<String, Map<String, Any?>>()
 
   private fun boundActivity(): Activity? = boundActivityRef?.get()
 
   @JvmStatic
   fun setEventEmitter(emitter: ((String, Map<String, Any?>) -> Unit)?) {
-    handler.post { eventEmitter = emitter }
+    handler.post {
+      eventEmitter = emitter
+      // A new module instance (JS reload) starts with no subscribers.
+      observedEvents.clear()
+    }
+  }
+
+  @JvmStatic
+  fun startObserving(name: String) {
+    handler.post {
+      observedEvents.add(name)
+      undeliveredEvents.remove(name)?.let { body -> eventEmitter?.invoke(name, body) }
+    }
+  }
+
+  @JvmStatic
+  fun stopObserving(name: String) {
+    handler.post { observedEvents.remove(name) }
   }
 
   private fun emit(name: String, body: Map<String, Any?> = emptyMap()) {
-    handler.post { eventEmitter?.invoke(name, body) }
+    handler.post {
+      val emitter = eventEmitter
+      if (emitter != null && name in observedEvents) {
+        emitter(name, body)
+      } else {
+        undeliveredEvents[name] = body
+      }
+    }
   }
 
   @JvmStatic
