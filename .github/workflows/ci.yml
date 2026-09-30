@@ -118,9 +118,10 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot-save -noaudio -no-boot-anim
           disable-animations: true
           # The runner executes each line in its own shell: no `cd` or variables carry over.
+          # Release embeds the JS bundle; Debug expects a Metro server the runner does not have.
           script: |
-            ./example/android/gradlew -p example/android :app:assembleDebug -x lint
-            adb install -r example/android/app/build/outputs/apk/debug/app-debug.apk
+            ./example/android/gradlew -p example/android :app:assembleRelease -x lint
+            adb install -r example/android/app/build/outputs/apk/release/app-release.apk
             maestro test .maestro --format junit --output maestro-android.xml
 
       - name: Upload Maestro report
@@ -184,10 +185,11 @@ jobs:
           cd example/ios
           WORKSPACE=$(ls -d *.xcworkspace | head -n1)
           SCHEME=$(basename "$WORKSPACE" .xcworkspace)
+          # Release embeds the JS bundle; Debug expects a Metro server the runner does not have.
           xcodebuild \
             -workspace "$WORKSPACE" \
             -scheme "$SCHEME" \
-            -configuration Debug \
+            -configuration Release \
             -sdk iphonesimulator \
             -destination "platform=iOS Simulator,id=$UDID" \
             -derivedDataPath build \
