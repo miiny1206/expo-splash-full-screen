@@ -1,4 +1,4 @@
-import { type ConfigPlugin, withDangerousMod, withInfoPlist } from '@expo/config-plugins';
+import { type ConfigPlugin, withDangerousMod, withInfoPlist } from 'expo/config-plugins';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -173,6 +173,7 @@ function buildStoryboard(
   // object (xml2js returns a string when the element only contains whitespace, which crashes
   // removeImageFromSplashScreen / applyImageToSplashScreenXML with "Cannot create property 'image'
   // on string"). Named "SplashScreenLogo" so the built-in remove path cleanly strips it.
+  // SDK 57 dropped that base mod from @expo/prebuild-config; drop this once SDK 56 support ends.
   const placeholderImageRef = `<image name="SplashScreenLogo" width="1" height="1"/>`;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
