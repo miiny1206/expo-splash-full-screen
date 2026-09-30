@@ -122,7 +122,7 @@ jobs:
           script: |
             ./example/android/gradlew -p example/android :app:assembleRelease -x lint
             adb install -r example/android/app/build/outputs/apk/release/app-release.apk
-            maestro test .maestro --format junit --output maestro-android.xml --debug-output maestro-debug-android
+            maestro test .maestro --format junit --output maestro-android.xml
 
       - name: Upload Maestro report
         if: always()
@@ -131,7 +131,7 @@ jobs:
           name: maestro-android
           path: |
             maestro-android.xml
-            maestro-debug-android
+            ~/.maestro/tests
           if-no-files-found: ignore
 
   ios-e2e:
@@ -203,7 +203,7 @@ jobs:
           xcrun simctl install "$UDID" "$APP"
 
       - name: Run Maestro
-        run: maestro test .maestro --format junit --output maestro-ios.xml --debug-output maestro-debug-ios
+        run: maestro test .maestro --format junit --output maestro-ios.xml
 
       - name: Upload Maestro report
         if: always()
@@ -212,5 +212,5 @@ jobs:
           name: maestro-ios
           path: |
             maestro-ios.xml
-            maestro-debug-ios
+            ~/.maestro/tests
           if-no-files-found: ignore

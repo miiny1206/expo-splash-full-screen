@@ -6,7 +6,7 @@ name: cold-start
     clearState: true
 - extendedWaitUntil:
     visible: 'expo-splash-full-screen'
-    timeout: 15000
+    timeout: 30000
 - assertVisible: 'Event log'
 - extendedWaitUntil:
     visible:

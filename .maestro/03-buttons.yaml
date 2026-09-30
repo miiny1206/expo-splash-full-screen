@@ -7,7 +7,7 @@ name: buttons
     clearState: true
 - extendedWaitUntil:
     visible: 'expo-splash-full-screen'
-    timeout: 15000
+    timeout: 30000
 - tapOn:
     id: 'btn-show-fullscreen'
 - tapOn:

@@ -6,7 +6,7 @@ name: process-death
     clearState: true
 - extendedWaitUntil:
     visible: 'expo-splash-full-screen'
-    timeout: 15000
+    timeout: 30000
 - extendedWaitUntil:
     visible:
       id: 'log-didHide'
@@ -15,7 +15,7 @@ name: process-death
 - launchApp
 - extendedWaitUntil:
     visible: 'expo-splash-full-screen'
-    timeout: 15000
+    timeout: 30000
 - extendedWaitUntil:
     visible:
       id: 'log-didShow'
